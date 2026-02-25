@@ -3,6 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileNameDisplay = document.getElementById('file-name');
     const filterSection = document.getElementById('filter-section');
     const classFiltersContainer = document.getElementById('class-filters');
+    const helpBtn = document.getElementById('help-btn');
+    const helpModal = document.getElementById('help-modal');
+    const closeHelpBtn = document.getElementById('close-help');
     const calendarContainer = document.getElementById('calendar-container');
     const clearFiltersBtn = document.getElementById('clear-filters-btn');
     const loadingOverlay = document.getElementById('loading');
@@ -13,6 +16,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedClasses = new Set();
 
     fileInput.addEventListener('change', handleFileUpload);
+
+    if (helpBtn && helpModal && closeHelpBtn) {
+        helpBtn.addEventListener('click', () => {
+            helpModal.classList.remove('hidden');
+        });
+
+        closeHelpBtn.addEventListener('click', () => {
+            helpModal.classList.add('hidden');
+        });
+
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) {
+                helpModal.classList.add('hidden');
+            }
+        });
+    }
+
     clearFiltersBtn.addEventListener('click', () => {
         selectedClasses.clear();
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));

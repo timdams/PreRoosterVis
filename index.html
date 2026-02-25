@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,19 +10,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="app-container">
         <header class="glass-panel">
             <h1>Examenrooster</h1>
             <p>Selecteer een Excel bestand om het rooster in te laden.</p>
-            
+
             <div class="upload-section">
                 <input type="file" id="excel-file" accept=".xlsx, .xls, .csv" class="file-input">
                 <label for="excel-file" class="upload-btn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
                     Bestand Kiezen
                 </label>
                 <span id="file-name" class="file-name">Geen bestand geselecteerd</span>
+                <button id="help-btn" class="help-btn" title="Toon verwachte bestandsindeling">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </button>
             </div>
         </header>
 
@@ -36,10 +51,44 @@
         <main id="calendar-container" class="calendar-container hidden">
             <!-- The 3-week calendar goes here -->
         </main>
-        
+
         <div id="loading" class="loading-overlay hidden">
             <div class="spinner"></div>
             <p>Rooster inladen...</p>
+        </div>
+
+        <!-- Help Modal -->
+        <div id="help-modal" class="modal-overlay hidden">
+            <div class="modal-content glass-panel">
+                <div class="modal-header">
+                    <h2>Verwachte Excel Indeling</h2>
+                    <button id="close-help" class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>Het Excel (of CSV) bestand moet de volgende structuur hebben:</p>
+
+                    <h3>Blad 1: Rooster</h3>
+                    <p>Dit is het hoofdblad met de examens. De volgende kolommen worden gebruikt:</p>
+                    <ul>
+                        <li><strong>Datum</strong> (bijv. 15/05/2024 of DD/MM/YYYY)</li>
+                        <li><strong>Begin</strong> (begintijd, bijv. 08:30)</li>
+                        <li><strong>Eindtijd</strong> (eindtijd, bijv. 10:30)</li>
+                        <li><strong>Vak</strong> (bijv. Wiskunde)</li>
+                        <li><strong>Docent</strong> (afkorting, bijv. JANS)</li>
+                        <li><strong>Lokalen</strong> (bijv. L01, L02)</li>
+                        <li><strong>Klas(sen)</strong> (bijv. 1A, 1B - gescheiden door komma's)</li>
+                        <li><strong>Uren</strong> (Optioneel)</li>
+                        <li><strong>Lestekst</strong> (Optioneel)</li>
+                    </ul>
+
+                    <h3>Blad 2 (Optioneel): Docenten</h3>
+                    <p>Voor het vertalen van afkortingen naar volledige namen:</p>
+                    <ul>
+                        <li><strong>Kolom 1:</strong> Volledige Naam (bijv. Jan Jansen)</li>
+                        <li><strong>Kolom 2:</strong> Afkorting (bijv. JANS)</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -47,4 +96,5 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script src="script.js"></script>
 </body>
+
 </html>
