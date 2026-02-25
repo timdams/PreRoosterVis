@@ -1,0 +1,23 @@
+# Node and Package files
+node_modules/
+npm-debug.log
+
+# Test bestanden en code
+test.js
+*.test.js
+*.spec.js
+tests/
+__tests__/
+coverage/
+
+# OS gegenereerde bestanden (Windows/Mac)
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Optioneel: als er specifieke test- of output mappen bijkomen
+dist/
+build/
+.env
+

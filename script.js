@@ -27,16 +27,16 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingOverlay.classList.remove('hidden');
 
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             const data = new Uint8Array(e.target.result);
             try {
-                const workbook = XLSX.read(data, { type: 'array' });
-                
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+
                 // Process Sheet 1 (Schedule)
                 const firstSheetName = workbook.SheetNames[0];
                 const scheduleSheet = workbook.Sheets[firstSheetName];
-                // Using raw: false ensures dates and times are formatted as strings based on Excel format.
-                rawSchedule = XLSX.utils.sheet_to_json(scheduleSheet, { defval: "", raw: false });
+                // Using raw: true gets us Date objects instead of randomly formatted strings
+                rawSchedule = XLSX.utils.sheet_to_json(scheduleSheet, { defval: "", raw: true });
 
                 // Process Sheet 2 (Teachers)
                 if (workbook.SheetNames.length > 1) {
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 extractClassesAndInitialize();
-                
+
                 filterSection.classList.remove('hidden');
                 calendarContainer.classList.remove('hidden');
             } catch (error) {
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function extractClassesAndInitialize() {
         allClasses.clear();
         selectedClasses.clear();
-        
+
         rawSchedule.forEach(row => {
             const klassenStr = row['Klas(sen)'];
             if (klassenStr) {
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Sort classes alphabetically
         const sortedClasses = Array.from(allClasses).sort();
-        
+
         // Build Filter UI
         classFiltersContainer.innerHTML = '';
         sortedClasses.forEach(cls => {
@@ -108,44 +108,57 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCalendar();
     }
 
-    // Helper to parse "DD/MM/YYYY" to Date object safely
-    function parseDateStr(dateStr) {
-        if (!dateStr) return null;
-        
-        // Check for common DD/MM/YYYY pattern
-        const parts = dateStr.match(/(\d+)\/(\d+)\/(\d+)/);
-        if (parts) {
-            let day = parseInt(parts[1], 10);
-            let month = parseInt(parts[2], 10) - 1; // 0-indexed
-            let year = parseInt(parts[3], 10);
-            if (year < 100) year += 2000;
-            return new Date(year, month, day);
+    // Helper to parse dates safely (handles both SheetJS Date objects and DD/MM/YYYY strings)
+    function parseDateObj(dateVal) {
+        if (!dateVal) return null;
+
+        // If SheetJS already parsed it as a Date object (cellDates: true)
+        if (dateVal instanceof Date) {
+            // SheetJS dates from Excel represent the local date accurately 
+            // when using local time methods (.getFullYear(), .getMonth(), .getDate())
+            return new Date(dateVal.getFullYear(), dateVal.getMonth(), dateVal.getDate());
         }
-        
-        // Fallback for native formats
-        const d = new Date(dateStr);
-        return isNaN(d.getTime()) ? null : d;
+
+        // Check for common DD/MM/YYYY string pattern from CSV
+        if (typeof dateVal === 'string') {
+            const parts = dateVal.match(/(\d+)\/(\d+)\/(\d+)/);
+            if (parts) {
+                let day = parseInt(parts[1], 10);
+                let month = parseInt(parts[2], 10) - 1; // 0-indexed
+                let year = parseInt(parts[3], 10);
+                if (year < 100) year += 2000;
+                return new Date(year, month, day);
+            }
+
+            // Fallback for native formats
+            const d = new Date(dateVal);
+            return isNaN(d.getTime()) ? null : d;
+        }
+
+        return null;
     }
 
     function renderCalendar() {
         let filtered = rawSchedule.filter(row => {
             if (selectedClasses.size === 0) return true; // Show all if nothing selected
-            
+
             const klassenStr = row['Klas(sen)'] || '';
             const klassenArr = klassenStr.split(',').map(k => k.trim());
             return klassenArr.some(k => selectedClasses.has(k));
         });
 
         const dayNames = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
-        
+
         // Enrich objects with parsed Date and Time
         const enriched = filtered.map(row => {
-            const dateObj = parseDateStr(row['Datum']);
+            const dateObj = parseDateObj(row['Datum']);
             return {
                 ...row,
                 _dateObj: dateObj,
                 _timestamp: dateObj ? dateObj.getTime() : 0,
-                _beginMinutes: parseTime(row['Begin'])
+                _beginMinutes: parseTime(row['Begin']),
+                _formattedBegin: formatTimeField(row['Begin']),
+                _formattedEindtijd: formatTimeField(row['Eindtijd'])
             };
         }).filter(r => r._dateObj !== null);
 
@@ -181,12 +194,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // By resetting time to midnight UTC
             const dUTC = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
             const startUTC = Date.UTC(startMonday.getFullYear(), startMonday.getMonth(), startMonday.getDate());
-            
+
             const diffDays = Math.floor((dUTC - startUTC) / (1000 * 60 * 60 * 24));
-            
+
             const weekIdx = Math.floor(diffDays / 7);
             const dayIdx = diffDays % 7;
-            
+
             // Limit to Mon-Fri of the 3 weeks
             if (weekIdx >= 0 && weekIdx <= 2 && dayIdx >= 0 && dayIdx <= 4) {
                 weeks[weekIdx].days[dayIdx].exams.push(exam);
@@ -201,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="week-title">Week ${i + 1} &nbsp;<span style="font-size: 1rem; font-weight: 400;">(${formatDateShort(week.startDate)} - ${formatDateShort(addDays(week.startDate, 4))})</span></div>
                     <div class="days-grid">
             `;
-            
+
             week.days.forEach(day => {
                 html += `
                         <div class="day-column">
@@ -210,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="date">${formatDateShort(day.date)}</span>
                             </div>
                 `;
-                
+
                 if (day.exams.length === 0) {
                     html += `<div style="text-align: center; color: var(--card-border); padding: 1rem; font-size: 0.85rem;">Geen examens</div>`;
                 }
@@ -218,12 +231,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 day.exams.forEach(exam => {
                     const docentAfkort = exam['Docent'] || '';
                     const fullDocent = teachersMap[docentAfkort] ? `${teachersMap[docentAfkort]} (${docentAfkort})` : docentAfkort;
-                    
+
                     html += `
                             <div class="exam-card">
                                 <div class="exam-time">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                    ${exam['Begin'] || '-'} - ${exam['Eindtijd'] || '-'} 
+                                    ${exam._formattedBegin || '-'} - ${exam._formattedEindtijd || '-'} 
                                     ${exam['Uren'] ? `<span style="color:var(--text-secondary); font-size:0.75rem; margin-left:auto;">(${exam['Uren']})</span>` : ''}
                                 </div>
                                 <div class="exam-subject">${exam['Vak'] || 'Onbekend Vak'}</div>
@@ -247,12 +260,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                     `;
                 });
-                
+
                 html += `
                         </div>
                 `;
             });
-            
+
             html += `
                     </div>
                 </div>
@@ -288,9 +301,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${dd}/${mm}`;
     }
 
-    function parseTime(timeStr) {
-        if (!timeStr) return 0;
-        const parts = timeStr.toString().split(':');
+    function formatTimeField(val) {
+        if (!val) return '';
+        if (val instanceof Date) {
+            // SheetJS times-only (without date) are mapped such that UTC hours match the text
+            return `${val.getUTCHours()}:${val.getUTCMinutes().toString().padStart(2, '0')}`;
+        }
+        return val.toString();
+    }
+
+    function parseTime(timeVal) {
+        if (!timeVal) return 0;
+        if (timeVal instanceof Date) {
+            return timeVal.getUTCHours() * 60 + timeVal.getUTCMinutes();
+        }
+        const parts = timeVal.toString().split(':');
         if (parts.length >= 2) {
             return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
         }
