@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examenrooster Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="glass-panel">
+            <h1>Examenrooster</h1>
+            <p>Selecteer een Excel bestand om het rooster in te laden.</p>
+            
+            <div class="upload-section">
+                <input type="file" id="excel-file" accept=".xlsx, .xls, .csv" class="file-input">
+                <label for="excel-file" class="upload-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    Bestand Kiezen
+                </label>
+                <span id="file-name" class="file-name">Geen bestand geselecteerd</span>
+            </div>
+        </header>
+
+        <section id="filter-section" class="filter-section glass-panel hidden">
+            <h2>Kies uw klas(sen)</h2>
+            <div id="class-filters" class="chips-container">
+                <!-- Filters will be generated here -->
+            </div>
+            <button id="clear-filters-btn" class="secondary-btn">Wis Filters</button>
+        </section>
+
+        <main id="calendar-container" class="calendar-container hidden">
+            <!-- The 3-week calendar goes here -->
+        </main>
+        
+        <div id="loading" class="loading-overlay hidden">
+            <div class="spinner"></div>
+            <p>Rooster inladen...</p>
+        </div>
+    </div>
+
+    <!-- SheetJS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
