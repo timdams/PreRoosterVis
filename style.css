@@ -49,6 +49,7 @@ header h1 {
     margin-bottom: 0.5rem;
     background: linear-gradient(to right, #818cf8, #c084fc);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -169,7 +170,8 @@ header p {
 
 .days-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr); /* Monday to Friday */
+    grid-template-columns: repeat(5, 1fr);
+    /* Monday to Friday */
     gap: 1rem;
 }
 
@@ -265,6 +267,64 @@ header p {
     color: var(--text-secondary);
 }
 
+.card-header {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+    padding-right: 2rem;
+}
+
+.expand-icon {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.exam-card.expanded .expand-icon {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.card-body {
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--card-border);
+    animation: fadeIn 0.3s ease;
+}
+
+.exam-card.expanded .card-body {
+    display: flex;
+}
+
+.word-wrap {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    line-height: 1.4;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Loading */
 .loading-overlay {
     position: fixed;
@@ -292,5 +352,7 @@ header p {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }

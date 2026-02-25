@@ -233,30 +233,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     const fullDocent = teachersMap[docentAfkort] ? `${teachersMap[docentAfkort]} (${docentAfkort})` : docentAfkort;
 
                     html += `
-                            <div class="exam-card">
-                                <div class="exam-time">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                    ${exam._formattedBegin || '-'} - ${exam._formattedEindtijd || '-'} 
-                                    ${exam['Uren'] ? `<span style="color:var(--text-secondary); font-size:0.75rem; margin-left:auto;">(${exam['Uren']})</span>` : ''}
+                            <div class="exam-card" onclick="this.classList.toggle('expanded')">
+                                <div class="card-header">
+                                    <div class="exam-time">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                        ${exam._formattedBegin || '-'} - ${exam._formattedEindtijd || '-'} 
+                                        ${exam['Uren'] ? `<span style="color:var(--text-secondary); font-size:0.75rem; margin-left:auto;">(${exam['Uren']})</span>` : ''}
+                                    </div>
+                                    <div class="exam-subject">${exam['Vak'] || 'Onbekend Vak'}</div>
+                                    
+                                    <div class="exam-detail" title="Docent">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                        <span>${fullDocent || '-'}</span>
+                                    </div>
+                                    <div class="expand-icon">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                    </div>
                                 </div>
-                                <div class="exam-subject">${exam['Vak'] || 'Onbekend Vak'}</div>
-                                
-                                <div class="exam-detail" title="Docent">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                                    <span>${fullDocent || '-'}</span>
+                                <div class="card-body">
+                                    <div class="exam-detail" title="Locatie">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                        <span class="word-wrap">${(exam['Lokalen'] || '-').split(',').join(', ')}</span>
+                                    </div>
+                                    <div class="exam-detail" title="Klassen">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                        <span class="word-wrap">${(exam['Klas(sen)'] || '-').split(',').join(', ')}</span>
+                                    </div>
+                                    ${exam['Lestekst'] ? `
+                                    <div class="exam-detail" style="color: #cbd5e1; font-style: italic; margin-top: 4px;">
+                                        <span class="word-wrap">${exam['Lestekst']}</span>
+                                    </div>` : ''}
                                 </div>
-                                <div class="exam-detail" title="Locatie">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                                    <span>${(exam['Lokalen'] || '-').split(',').join(', ')}</span>
-                                </div>
-                                <div class="exam-detail" title="Klassen">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                                    <span>${exam['Klas(sen)'] || '-'}</span>
-                                </div>
-                                ${exam['Lestekst'] ? `
-                                <div class="exam-detail" style="color: #cbd5e1; font-style: italic; margin-top: 4px;">
-                                    <span>${exam['Lestekst']}</span>
-                                </div>` : ''}
                             </div>
                     `;
                 });
