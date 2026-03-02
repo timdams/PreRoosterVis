@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileNameDisplay = document.getElementById('file-name');
     const filterSection = document.getElementById('filter-section');
     const classFiltersContainer = document.getElementById('class-filters');
+    const teacherFiltersContainer = document.getElementById('teacher-filters');
     const helpBtn = document.getElementById('help-btn');
     const helpModal = document.getElementById('help-modal');
     const closeHelpBtn = document.getElementById('close-help');
@@ -14,6 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let teachersMap = {};
     let allClasses = new Set();
     let selectedClasses = new Set();
+    let allTeachers = new Set();
+    let selectedTeachers = new Set();
 
     fileInput.addEventListener('change', handleFileUpload);
 
@@ -35,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     clearFiltersBtn.addEventListener('click', () => {
         selectedClasses.clear();
+        selectedTeachers.clear();
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
         renderCalendar();
     });
@@ -94,6 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function extractClassesAndInitialize() {
         allClasses.clear();
         selectedClasses.clear();
+        allTeachers.clear();
+        selectedTeachers.clear();
 
         rawSchedule.forEach(row => {
             const klassenStr = row['Klas(sen)'];
@@ -101,12 +107,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const klassenArr = klassenStr.split(',').map(k => k.trim()).filter(k => k);
                 klassenArr.forEach(k => allClasses.add(k));
             }
+
+            const docentAfkort = row['Docent'];
+            if (docentAfkort) {
+                const docentArr = docentAfkort.toString().split(',').map(d => d.trim()).filter(d => d);
+                docentArr.forEach(d => allTeachers.add(d));
+            }
         });
 
         // Sort classes alphabetically
         const sortedClasses = Array.from(allClasses).sort();
+        // Sort teachers alphabetically
+        const sortedTeachers = Array.from(allTeachers).sort();
 
-        // Build Filter UI
+        // Build Class Filter UI
         classFiltersContainer.innerHTML = '';
         sortedClasses.forEach(cls => {
             const chip = document.createElement('div');
@@ -122,6 +136,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderCalendar();
             });
             classFiltersContainer.appendChild(chip);
+        });
+
+        // Build Teacher Filter UI
+        teacherFiltersContainer.innerHTML = '';
+        sortedTeachers.forEach(docentAfkort => {
+            const chip = document.createElement('div');
+            chip.className = 'chip';
+            const fullNaam = teachersMap[docentAfkort];
+            // If full name is available and different from abbreviation, show it
+            chip.textContent = fullNaam && fullNaam !== docentAfkort ? `${fullNaam} (${docentAfkort})` : docentAfkort;
+            chip.addEventListener('click', () => {
+                chip.classList.toggle('active');
+                if (selectedTeachers.has(docentAfkort)) {
+                    selectedTeachers.delete(docentAfkort);
+                } else {
+                    selectedTeachers.add(docentAfkort);
+                }
+                renderCalendar();
+            });
+            teacherFiltersContainer.appendChild(chip);
         });
 
         // Render everything initially
@@ -160,11 +194,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderCalendar() {
         let filtered = rawSchedule.filter(row => {
-            if (selectedClasses.size === 0) return true; // Show all if nothing selected
+            let classMatch = true;
+            if (selectedClasses.size > 0) {
+                const klassenStr = row['Klas(sen)'] || '';
+                const klassenArr = klassenStr.split(',').map(k => k.trim());
+                classMatch = klassenArr.some(k => selectedClasses.has(k));
+            }
 
-            const klassenStr = row['Klas(sen)'] || '';
-            const klassenArr = klassenStr.split(',').map(k => k.trim());
-            return klassenArr.some(k => selectedClasses.has(k));
+            let teacherMatch = true;
+            if (selectedTeachers.size > 0) {
+                const docentAfkort = row['Docent'] || '';
+                const docentArr = docentAfkort.toString().split(',').map(d => d.trim());
+                teacherMatch = docentArr.some(d => selectedTeachers.has(d));
+            }
+
+            return classMatch && teacherMatch;
         });
 
         const dayNames = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
