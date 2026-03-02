@@ -98,6 +98,40 @@ header p {
     display: none !important;
 }
 
+.main-content-layout {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.filter-section {
+    flex: 0 0 300px;
+    position: sticky;
+    top: 2rem;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+}
+
+.filter-section::-webkit-scrollbar {
+    width: 6px;
+}
+.filter-section::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+@media (max-width: 1024px) {
+    .main-content-layout {
+        flex-direction: column;
+    }
+    .filter-section {
+        flex: auto;
+        width: 100%;
+        position: static;
+        max-height: none;
+    }
+}
+
 .filter-section h2 {
     font-size: 1.25rem;
     margin-bottom: 1rem;
@@ -148,6 +182,8 @@ header p {
 
 /* Calendar Grid */
 .calendar-container {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 3rem;
