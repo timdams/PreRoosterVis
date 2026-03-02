@@ -42,22 +42,46 @@
 
         <div class="main-content-layout">
             <aside id="filter-section" class="filter-section glass-panel hidden">
+                <button id="clear-filters-btn" class="secondary-btn" style="margin-bottom: 1.5rem; width: 100%;">Wis
+                    Filters</button>
                 <div class="filter-group">
-                    <h2>Kies uw klas(sen)</h2>
+                    <div class="filter-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                        <h2>Kies uw klas(sen)</h2>
+                        <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
                     <div id="class-filters" class="chips-container">
                         <!-- Filters will be generated here -->
                     </div>
                 </div>
 
-                <div class="filter-group" style="margin-top: 1.5rem;">
-                    <h2>Kies uw collega('s)</h2>
+                <div class="filter-group collapsed" style="margin-top: 1.5rem;">
+                    <div class="filter-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                        <h2>Kies uw collega('s)</h2>
+                        <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
                     <div id="teacher-filters" class="chips-container">
                         <!-- Filters will be generated here -->
                     </div>
                 </div>
 
-                <button id="clear-filters-btn" class="secondary-btn" style="margin-top: 1.5rem; width: 100%;">Wis
-                    Filters</button>
+                <div class="filter-group collapsed" style="margin-top: 1.5rem;">
+                    <div class="filter-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                        <h2>Kies uw lokaal</h2>
+                        <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div id="location-filters" class="chips-container">
+                        <!-- Filters will be generated here -->
+                    </div>
+                </div>
             </aside>
 
             <main id="calendar-container" class="calendar-container hidden">

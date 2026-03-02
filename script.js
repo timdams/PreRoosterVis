@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterSection = document.getElementById('filter-section');
     const classFiltersContainer = document.getElementById('class-filters');
     const teacherFiltersContainer = document.getElementById('teacher-filters');
+    const locationFiltersContainer = document.getElementById('location-filters');
     const helpBtn = document.getElementById('help-btn');
     const helpModal = document.getElementById('help-modal');
     const closeHelpBtn = document.getElementById('close-help');
@@ -17,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedClasses = new Set();
     let allTeachers = new Set();
     let selectedTeachers = new Set();
+    let allLocations = new Set();
+    let selectedLocations = new Set();
 
     fileInput.addEventListener('change', handleFileUpload);
 
@@ -39,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clearFiltersBtn.addEventListener('click', () => {
         selectedClasses.clear();
         selectedTeachers.clear();
+        selectedLocations.clear();
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
         renderCalendar();
     });
@@ -100,6 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedClasses.clear();
         allTeachers.clear();
         selectedTeachers.clear();
+        allLocations.clear();
+        selectedLocations.clear();
 
         rawSchedule.forEach(row => {
             const klassenStr = row['Klas(sen)'];
@@ -113,12 +119,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const docentArr = docentAfkort.toString().split(',').map(d => d.trim()).filter(d => d);
                 docentArr.forEach(d => allTeachers.add(d));
             }
+
+            const lokalenStr = row['Lokalen'];
+            if (lokalenStr) {
+                const lokalenArr = lokalenStr.toString().split(',').map(l => l.trim()).filter(l => l);
+                lokalenArr.forEach(l => allLocations.add(l));
+            }
         });
 
         // Sort classes alphabetically
         const sortedClasses = Array.from(allClasses).sort();
         // Sort teachers alphabetically
         const sortedTeachers = Array.from(allTeachers).sort();
+        // Sort locations alphabetically
+        const sortedLocations = Array.from(allLocations).sort();
 
         // Build Class Filter UI
         classFiltersContainer.innerHTML = '';
@@ -156,6 +170,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderCalendar();
             });
             teacherFiltersContainer.appendChild(chip);
+        });
+
+        // Build Location Filter UI
+        locationFiltersContainer.innerHTML = '';
+        sortedLocations.forEach(loc => {
+            const chip = document.createElement('div');
+            chip.className = 'chip';
+            chip.textContent = loc;
+            chip.addEventListener('click', () => {
+                chip.classList.toggle('active');
+                if (selectedLocations.has(loc)) {
+                    selectedLocations.delete(loc);
+                } else {
+                    selectedLocations.add(loc);
+                }
+                renderCalendar();
+            });
+            locationFiltersContainer.appendChild(chip);
         });
 
         // Render everything initially
@@ -208,7 +240,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 teacherMatch = docentArr.some(d => selectedTeachers.has(d));
             }
 
-            return classMatch && teacherMatch;
+            let locationMatch = true;
+            if (selectedLocations.size > 0) {
+                const lokalenStr = row['Lokalen'] || '';
+                const lokalenArr = lokalenStr.toString().split(',').map(l => l.trim());
+                locationMatch = lokalenArr.some(l => selectedLocations.has(l));
+            }
+
+            return classMatch && teacherMatch && locationMatch;
         });
 
         const dayNames = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
