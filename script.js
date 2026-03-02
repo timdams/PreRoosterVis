@@ -193,7 +193,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const earliestDate = enriched[0]._dateObj;
+        // Bepaal de vroegste datum over alle examens heen voor consistente weektelling
+        let globalEarliestDate = null;
+        rawSchedule.forEach(row => {
+            const d = parseDateObj(row['Datum']);
+            if (d && (!globalEarliestDate || d.getTime() < globalEarliestDate.getTime())) {
+                globalEarliestDate = d;
+            }
+        });
+
+        const earliestDate = globalEarliestDate || enriched[0]._dateObj;
         // Fallback: earliest Monday
         const startMonday = new Date(earliestDate);
         const dayOfWeek = startMonday.getDay();
