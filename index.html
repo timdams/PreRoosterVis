@@ -68,6 +68,26 @@
 
                 <div class="filter-group collapsed" style="margin-top: 1.5rem;">
                     <div class="filter-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                        <h2>Kies uw vak(ken)</h2>
+                        <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="vak-filter-body">
+                        <div class="vak-search-wrapper">
+                            <input type="text" id="vak-search" class="filter-search vak-search"
+                                placeholder="Typ om een vak te zoeken..." autocomplete="off">
+                            <div id="vak-suggestions" class="vak-suggestions hidden"></div>
+                        </div>
+                        <div id="vak-filters" class="chips-container">
+                            <!-- Selected vakken only -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-group collapsed" style="margin-top: 1.5rem;">
+                    <div class="filter-header" onclick="this.parentElement.classList.toggle('collapsed')">
                         <h2>Kies uw collega('s)</h2>
                         <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

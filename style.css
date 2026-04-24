@@ -217,6 +217,69 @@ header p {
     display: none;
 }
 
+.vak-filter-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-group.collapsed .vak-filter-body {
+    display: none;
+}
+
+.vak-search-wrapper {
+    position: relative;
+    margin-bottom: 0.75rem;
+}
+
+.vak-suggestions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: rgba(15, 23, 42, 0.98);
+    border: 1px solid var(--card-border);
+    border-radius: 0.5rem;
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.vak-suggestion {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.vak-suggestion:last-child {
+    border-bottom: none;
+}
+
+.vak-suggestion:hover {
+    background: rgba(99, 102, 241, 0.25);
+}
+
+.vak-suggestion.disabled {
+    color: var(--text-secondary);
+    cursor: default;
+    font-style: italic;
+}
+
+.vak-suggestion.disabled:hover {
+    background: transparent;
+}
+
+.vak-suggestions-more {
+    padding: 0.5rem 0.75rem;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-style: italic;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .filter-group.no-search-matches {
     display: none;
 }

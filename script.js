@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearFiltersBtn = document.getElementById('clear-filters-btn');
     const loadingOverlay = document.getElementById('loading');
     const filterSearchInput = document.getElementById('filter-search');
+    const vakSearchInput = document.getElementById('vak-search');
+    const vakSuggestionsContainer = document.getElementById('vak-suggestions');
+    const vakFiltersContainer = document.getElementById('vak-filters');
 
     let rawSchedule = [];
     let teachersMap = {};
@@ -21,6 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedTeachers = new Set();
     let allLocations = new Set();
     let selectedLocations = new Set();
+    let allVaks = new Set();
+    let selectedVaks = new Set();
 
     fileInput.addEventListener('change', handleFileUpload);
 
@@ -44,7 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedClasses.clear();
         selectedTeachers.clear();
         selectedLocations.clear();
+        selectedVaks.clear();
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        renderVakChips();
+        if (vakSearchInput) vakSearchInput.value = '';
+        hideVakSuggestions();
         renderCalendar();
     });
 
@@ -52,10 +61,29 @@ document.addEventListener('DOMContentLoaded', () => {
         filterSearchInput.addEventListener('input', applySearchFilter);
     }
 
+    if (vakSearchInput) {
+        vakSearchInput.addEventListener('input', showVakSuggestions);
+        vakSearchInput.addEventListener('focus', () => {
+            if (vakSearchInput.value.trim()) showVakSuggestions();
+        });
+        vakSearchInput.addEventListener('blur', () => {
+            // Delay so mousedown on suggestion can fire first
+            setTimeout(hideVakSuggestions, 150);
+        });
+        vakSearchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                vakSearchInput.value = '';
+                hideVakSuggestions();
+            }
+        });
+    }
+
     function applySearchFilter() {
         const query = (filterSearchInput.value || '').trim().toLowerCase();
         const groups = document.querySelectorAll('#filter-section .filter-group');
         groups.forEach(group => {
+            // Vak-groep heeft eigen zoekveld; globale search niet toepassen
+            if (group.querySelector('.vak-filter-body')) return;
             const chips = group.querySelectorAll('.chip');
             let visibleCount = 0;
             chips.forEach(chip => {
@@ -69,6 +97,72 @@ document.addEventListener('DOMContentLoaded', () => {
                 group.classList.remove('collapsed');
             }
         });
+    }
+
+    function renderVakChips() {
+        if (!vakFiltersContainer) return;
+        vakFiltersContainer.innerHTML = '';
+        Array.from(selectedVaks).sort().forEach(vak => {
+            const chip = document.createElement('div');
+            chip.className = 'chip active';
+            chip.textContent = vak;
+            chip.title = 'Klik om te verwijderen';
+            chip.addEventListener('click', () => {
+                selectedVaks.delete(vak);
+                renderVakChips();
+                renderCalendar();
+                if (vakSearchInput && vakSearchInput.value.trim()) showVakSuggestions();
+            });
+            vakFiltersContainer.appendChild(chip);
+        });
+    }
+
+    function showVakSuggestions() {
+        if (!vakSuggestionsContainer || !vakSearchInput) return;
+        const query = vakSearchInput.value.trim().toLowerCase();
+        if (!query) { hideVakSuggestions(); return; }
+
+        const matches = Array.from(allVaks)
+            .filter(v => !selectedVaks.has(v))
+            .filter(v => v.toLowerCase().includes(query))
+            .sort();
+
+        vakSuggestionsContainer.innerHTML = '';
+        if (matches.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'vak-suggestion disabled';
+            empty.textContent = 'Geen vakken gevonden';
+            vakSuggestionsContainer.appendChild(empty);
+        } else {
+            const MAX = 15;
+            matches.slice(0, MAX).forEach(vak => {
+                const item = document.createElement('div');
+                item.className = 'vak-suggestion';
+                item.textContent = vak;
+                // mousedown vuurt vóór blur, zodat de suggestie niet verdwijnt voor de klik
+                item.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    selectedVaks.add(vak);
+                    vakSearchInput.value = '';
+                    renderVakChips();
+                    hideVakSuggestions();
+                    renderCalendar();
+                    vakSearchInput.focus();
+                });
+                vakSuggestionsContainer.appendChild(item);
+            });
+            if (matches.length > MAX) {
+                const more = document.createElement('div');
+                more.className = 'vak-suggestions-more';
+                more.textContent = `...en nog ${matches.length - MAX} meer (verfijn zoekterm)`;
+                vakSuggestionsContainer.appendChild(more);
+            }
+        }
+        vakSuggestionsContainer.classList.remove('hidden');
+    }
+
+    function hideVakSuggestions() {
+        if (vakSuggestionsContainer) vakSuggestionsContainer.classList.add('hidden');
     }
 
     function handleFileUpload(e) {
@@ -130,6 +224,8 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedTeachers.clear();
         allLocations.clear();
         selectedLocations.clear();
+        allVaks.clear();
+        selectedVaks.clear();
 
         rawSchedule.forEach(row => {
             const klassenStr = row['Klas(sen)'];
@@ -148,6 +244,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (lokalenStr) {
                 const lokalenArr = lokalenStr.toString().split(',').map(l => l.trim()).filter(l => l);
                 lokalenArr.forEach(l => allLocations.add(l));
+            }
+
+            const vakStr = row['Vak'];
+            if (vakStr) {
+                const v = vakStr.toString().trim();
+                if (v) allVaks.add(v);
             }
         });
 
@@ -214,6 +316,11 @@ document.addEventListener('DOMContentLoaded', () => {
             locationFiltersContainer.appendChild(chip);
         });
 
+        // Reset vak-UI (typeahead + chips)
+        if (vakSearchInput) vakSearchInput.value = '';
+        hideVakSuggestions();
+        renderVakChips();
+
         // Re-apply any active search query to the freshly built chips
         applySearchFilter();
 
@@ -274,7 +381,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 locationMatch = lokalenArr.some(l => selectedLocations.has(l));
             }
 
-            return classMatch && teacherMatch && locationMatch;
+            let vakMatch = true;
+            if (selectedVaks.size > 0) {
+                const vak = (row['Vak'] || '').toString().trim();
+                vakMatch = selectedVaks.has(vak);
+            }
+
+            return classMatch && teacherMatch && locationMatch && vakMatch;
         });
 
         const dayNames = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
