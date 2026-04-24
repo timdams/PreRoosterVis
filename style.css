@@ -177,6 +177,50 @@ header p {
     margin-bottom: 1.5rem;
 }
 
+.search-wrapper {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+.filter-search {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--card-border);
+    border-radius: 0.5rem;
+    color: var(--text-primary);
+    padding: 0.6rem 0.75rem 0.6rem 2.25rem;
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.filter-search::placeholder {
+    color: var(--text-secondary);
+}
+
+.filter-search:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.chip.hidden-by-search {
+    display: none;
+}
+
+.filter-group.no-search-matches {
+    display: none;
+}
+
 .chip {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--card-border);

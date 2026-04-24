@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const calendarContainer = document.getElementById('calendar-container');
     const clearFiltersBtn = document.getElementById('clear-filters-btn');
     const loadingOverlay = document.getElementById('loading');
+    const filterSearchInput = document.getElementById('filter-search');
 
     let rawSchedule = [];
     let teachersMap = {};
@@ -46,6 +47,29 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
         renderCalendar();
     });
+
+    if (filterSearchInput) {
+        filterSearchInput.addEventListener('input', applySearchFilter);
+    }
+
+    function applySearchFilter() {
+        const query = (filterSearchInput.value || '').trim().toLowerCase();
+        const groups = document.querySelectorAll('#filter-section .filter-group');
+        groups.forEach(group => {
+            const chips = group.querySelectorAll('.chip');
+            let visibleCount = 0;
+            chips.forEach(chip => {
+                const match = !query || chip.textContent.toLowerCase().includes(query);
+                chip.classList.toggle('hidden-by-search', !match);
+                if (match) visibleCount++;
+            });
+            group.classList.toggle('no-search-matches', query && visibleCount === 0);
+            // Auto-expand groups when searching so matches are visible
+            if (query && visibleCount > 0) {
+                group.classList.remove('collapsed');
+            }
+        });
+    }
 
     function handleFileUpload(e) {
         const file = e.target.files[0];
@@ -190,6 +214,9 @@ document.addEventListener('DOMContentLoaded', () => {
             locationFiltersContainer.appendChild(chip);
         });
 
+        // Re-apply any active search query to the freshly built chips
+        applySearchFilter();
+
         // Render everything initially
         renderCalendar();
     }
@@ -271,7 +298,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return a._beginMinutes - b._beginMinutes;
         });
 
-        if (enriched.length === 0) {
+        // Merge duplicate moments (same date/time/subject/classes/location) — combine docenten
+        const merged = mergeDuplicateExams(enriched);
+
+        if (merged.length === 0) {
             calendarContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Geen examens gevonden voor deze selectie.</p>';
             return;
         }
@@ -285,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        const earliestDate = globalEarliestDate || enriched[0]._dateObj;
+        const earliestDate = globalEarliestDate || merged[0]._dateObj;
         // Fallback: earliest Monday
         const startMonday = new Date(earliestDate);
         const dayOfWeek = startMonday.getDay();
@@ -300,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
         // Assign exams to correct day & week
-        enriched.forEach(exam => {
+        merged.forEach(exam => {
             const d = exam._dateObj;
             // Calculate difference in days safely without daylight saving time issues
             // By resetting time to midnight UTC
@@ -342,7 +372,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 day.exams.forEach(exam => {
                     const docentAfkort = exam['Docent'] || '';
-                    const fullDocent = teachersMap[docentAfkort] ? `${teachersMap[docentAfkort]} (${docentAfkort})` : docentAfkort;
+                    const docentList = docentAfkort.toString().split(',').map(d => d.trim()).filter(d => d);
+                    const fullDocent = docentList
+                        .map(d => teachersMap[d] && teachersMap[d] !== d ? `${teachersMap[d]} (${d})` : d)
+                        .join(', ');
 
                     html += `
                             <div class="exam-card" onclick="this.classList.toggle('expanded')">
@@ -392,6 +425,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         calendarContainer.innerHTML = html;
+    }
+
+    function mergeDuplicateExams(exams) {
+        const groups = new Map();
+        exams.forEach(exam => {
+            const key = [
+                exam._timestamp,
+                exam._formattedBegin,
+                exam._formattedEindtijd,
+                (exam['Vak'] || '').toString().trim(),
+                (exam['Klas(sen)'] || '').toString().trim(),
+                (exam['Lokalen'] || '').toString().trim(),
+                (exam['Uren'] || '').toString().trim(),
+                (exam['Lestekst'] || '').toString().trim()
+            ].join('|');
+
+            if (!groups.has(key)) {
+                groups.set(key, { exam: { ...exam }, docenten: [] });
+            }
+            const group = groups.get(key);
+            (exam['Docent'] || '').toString().split(',').map(d => d.trim()).filter(d => d).forEach(d => {
+                if (!group.docenten.includes(d)) group.docenten.push(d);
+            });
+        });
+
+        return Array.from(groups.values()).map(g => {
+            g.exam['Docent'] = g.docenten.join(', ');
+            return g.exam;
+        });
     }
 
     function addDays(date, days) {

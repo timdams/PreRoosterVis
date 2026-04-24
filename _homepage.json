@@ -1,0 +1,45 @@
+{
+  "name": "PreRoosterVis",
+  "tech": "JavaScript",
+  "techDetail": "JavaScript / xlsx",
+  "branch": "main",
+  "lastCommit": "2026-03-02",
+  "lastCommitMsg": "wi filter",
+  "lastCommitHash": "ce51d3c",
+  "hasGit": true,
+  "remote": "https://github.com/timdams/PreRoosterVis",
+  "tag": null,
+  "recentCommits": [
+    {
+      "hash": "ce51d3c",
+      "msg": "wi filter"
+    },
+    {
+      "hash": "8432737",
+      "msg": "filter links"
+    },
+    {
+      "hash": "d9fc9cd",
+      "msg": "college filter"
+    },
+    {
+      "hash": "389e811",
+      "msg": "rooster telling"
+    },
+    {
+      "hash": "3b4fd92",
+      "msg": "helptekst"
+    }
+  ],
+  "workspace": "untisbrowser.code-workspace",
+  "noteFiles": [
+    "wishlist.md"
+  ],
+  "path": "PreRoosterVis",
+  "desc": "��#\u0000 \u0000P\u0000r\u0000e\u0000R\u0000o\u0000o\u0000s\u0000t\u0000e\u0000r\u0000V\u0000i\u0000s\u0000\r\u0000",
+  "category": "Roostering",
+  "status": "active",
+  "tags": [],
+  "aiSummary": null,
+  "customNotes": null
+}
