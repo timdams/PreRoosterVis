@@ -3,13 +3,21 @@
   "tech": "JavaScript",
   "techDetail": "JavaScript / xlsx",
   "branch": "main",
-  "lastCommit": "2026-03-02",
-  "lastCommitMsg": "wi filter",
-  "lastCommitHash": "ce51d3c",
+  "lastCommit": "2026-04-24",
+  "lastCommitMsg": "olod zoek",
+  "lastCommitHash": "b692d2d",
   "hasGit": true,
   "remote": "https://github.com/timdams/PreRoosterVis",
   "tag": null,
   "recentCommits": [
+    {
+      "hash": "b692d2d",
+      "msg": "olod zoek"
+    },
+    {
+      "hash": "1608d62",
+      "msg": "vinny wishes"
+    },
     {
       "hash": "ce51d3c",
       "msg": "wi filter"
@@ -21,14 +29,6 @@
     {
       "hash": "d9fc9cd",
       "msg": "college filter"
-    },
-    {
-      "hash": "389e811",
-      "msg": "rooster telling"
-    },
-    {
-      "hash": "3b4fd92",
-      "msg": "helptekst"
     }
   ],
   "workspace": "untisbrowser.code-workspace",

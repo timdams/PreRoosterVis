@@ -16,8 +16,158 @@ document.addEventListener('DOMContentLoaded', () => {
     const vakSuggestionsContainer = document.getElementById('vak-suggestions');
     const vakFiltersContainer = document.getElementById('vak-filters');
 
+    // Interne lijst van docenten (afkorting → volledige naam).
+    // Gebruikt als fallback wanneer het Excel-bestand geen tweede blad bevat;
+    // gegevens uit een meegeleverd "Docenten"-blad krijgen voorrang.
+    const BUILT_IN_TEACHERS_MAP = {
+        'ALL': 'Allard Nathalie',
+        'BAEJ': 'Baert Jonas',
+        'BEYN': 'Beyers Aäron',
+        'BINNC': 'Binnemans Charlotte',
+        'BOMI': 'Boeynaems Michael',
+        'BOH': 'Bollaert Hiram',
+        'BUN': 'Bungeneers Tom',
+        'CASK': 'Casal Mosteiro Kelly',
+        'CASW': 'Casteels Wim',
+        'CHSV': 'Charleer Sven',
+        'CHST': 'Charpentier Steven',
+        'CLSA': 'Claes Sara',
+        'COMRO': 'Cominotto Robin',
+        'COPCH': 'Cop Christophe',
+        'CROBR': 'Crols Bram',
+        'DAT': 'Dams Tim',
+        'DBM': 'De Bie Marijke',
+        'DELH': 'De Clerck Liesbeth',
+        'DDB': 'De Decker Benny',
+        'DEDA': 'De Deken Dany',
+        'DMAGE': 'de Magtige Ernie',
+        'DEMP': 'De Meersman Patrick',
+        'DEPM': 'De Pooter Marijn',
+        'DEWA': 'De Ridder Ward',
+        'DESNI': 'De Schutter Nick',
+        'DEKO': 'De Smet Koen',
+        'VOJE': 'De Vos Jeroen',
+        'DEVT': 'De Vries Thomas',
+        'DEVU': 'De Vuyst Marijke',
+        'WITE': 'De Wit Eveline',
+        'DEBE': 'Debeuf Ann',
+        'DELA': 'Delafortry Lina',
+        'DELIK': 'Delien Kim',
+        'DIEP': 'Diependaele Kevin',
+        'DOST': 'Doggen Stijn',
+        'DRFR': 'Draulans Frederik',
+        'DRE': 'Dreessen Kristel',
+        'DRUS': 'Druyts Stijn',
+        'EHNA': 'El Hajjouti Nabil',
+        'FRA': 'Frateur Wouter',
+        'GEJI': 'Geens Jill',
+        'GEM': 'Gemoets Ann',
+        'GHAN': 'Ghanoudi Hakim',
+        'GOEL': 'Goedemé Lien',
+        'GOC': 'Goidts Christophe',
+        'GOM': 'Gombeer Wim',
+        'GOJO': 'Gossé Joke',
+        'GUJ': 'Guldentops Jan',
+        'HADD': 'Haddouchi Hassan',
+        'HAZ': 'Hazebroek Maarten',
+        'HEIR': 'Heirbaut Steven',
+        'HESA': 'Hendrickx Sanne',
+        'HERB': 'Herman Bruno',
+        'HOSE': 'Horsmans Serge',
+        'HYE': 'Hye Dirk',
+        'JAMY': 'Janse Myrthe',
+        'JADE': 'Janssens Dennis',
+        'JOOI': 'Joosen Isabelle',
+        'KOBR': 'Kortleven Bram',
+        'LEFL': 'Lefebure Laurens',
+        'LEEL': 'Leonard Elias',
+        'LET': 'Lettany Barbara',
+        'LIE': 'Listhaeghe Erwin',
+        'LIV': 'Livens Wim',
+        'LUP': 'Luyckx Philip',
+        'LUMA': 'Luyts Maarten',
+        'MAND': 'Manderyck Isaac',
+        'MAF': 'Marain Frederik',
+        'MASV': 'Mariën Sven',
+        'MAKR': 'Martens Kristoff',
+        'MASS': 'Masset Yves',
+        'MES': 'Mermans Sandra',
+        'MICK': 'Michiels Kristof',
+        'MOW': 'Moons Wouter',
+        'NYV': 'Nys Vincent',
+        'ORL': 'Orlent Indra',
+        'OVBR': 'Overstijns Bram',
+        'PAE': 'Paesmans Mietje',
+        'PNI': 'Pauwels Nick',
+        'PEWO': 'Peetermans Wouter',
+        'PEA': 'Peeters Andreas',
+        'PEEJA': 'Peeters Jannes',
+        'PELAN': 'Peeters Lander',
+        'PET': 'Peeters Tom',
+        'POS': 'Possemiers Philippe',
+        'PYP': 'Pype Lynn',
+        'ROI': 'Robijns Iris',
+        'RODI': 'Roelants Dieter',
+        'ROMM': 'Rolus Magalie',
+        'ROSM': 'Rosseau Marc',
+        'RUB': 'Rubberecht Pieter',
+        'SCMAR': 'Schraepen Mario',
+        'SCRPH': 'Schraepen Philippe',
+        'SERA': 'Serneels Alexander',
+        'SIAN': 'Similon Andie',
+        'SPPE': 'Spaas Peter',
+        'SPO': 'Spittaels Olaf',
+        'STEW': 'Stevens Wouter',
+        'STT': 'Stoops Tim',
+        'STD': 'Sturm Dimitri',
+        'TSA': 'Thijs Alain',
+        'TIRU': 'Tiebos Ruud',
+        'TIEPT': 'Tiepermann Tom',
+        'TILD': 'Tillemans David',
+        'VAN': 'Van Acker Nick',
+        'VAWI': 'Van Aerschot Wim',
+        'VAV': 'Van Assche Veerle',
+        'VBSA': 'Van Battel Sam',
+        'VASE': 'Van Camp Serge',
+        'CAMV': 'Van Camp Vincent',
+        'VVI': 'Van de Venne Ingeborg',
+        'VBH': 'Van den Bulck Helga',
+        'VDHS': 'Van den Heuvel Sylvia',
+        'VDL': 'Van Den Langenbergh Maïté',
+        'POEJ': 'Van den Poel Jan',
+        'VAHA': 'Van der Kraan Harold',
+        'VDES': 'Van der Meulen Esthel',
+        'DIJM': 'van Dijk Maria',
+        'VAEY': 'Van Eyken Koen',
+        'VAGI': 'Van Gils Christel',
+        'VGG': 'Van Grieken Geert',
+        'VABA': 'Van Hecke Bavo',
+        'LOOE': 'Van Loo Erwin',
+        'VLO': 'Van Looveren Ilse',
+        'VADK': 'Van Merode Dirk',
+        'OVMA': 'Van Overveldt Maarten',
+        'VRJO': 'Van Riel Jonas',
+        'VRSTE': 'Van Rossem Stephane',
+        'VANTB': 'Van Thielen Bart',
+        'VAM': 'van Varik Meeuwis',
+        'VDVP': 'Vander Vennet Pieter',
+        'HULG': 'Vanhulle Geert',
+        'VERHL': 'Verhaert Loes',
+        'VEDD': 'Verhulst David',
+        'VETH': 'Verhuyck Thomas',
+        'VEK': 'Verlinden Karen',
+        'VEDAD': 'Vermonden David',
+        'VRB': 'Verstraeten Bartholomeus',
+        'VIS': 'Vissers Nadia',
+        'WAEDI': 'Waeyaert Dimitri',
+        'WEU': 'Weuts Anne-Elisabeth',
+        'WIOL': 'Wille Olivier',
+        'WIV': 'Willemen Vanessa/Vaya',
+        'YPS': 'Yperzeele Saskia'
+    };
+
     let rawSchedule = [];
-    let teachersMap = {};
+    let teachersMap = { ...BUILT_IN_TEACHERS_MAP };
     let allClasses = new Set();
     let selectedClasses = new Set();
     let allTeachers = new Set();
@@ -87,7 +237,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const chips = group.querySelectorAll('.chip');
             let visibleCount = 0;
             chips.forEach(chip => {
-                const match = !query || chip.textContent.toLowerCase().includes(query);
+                const haystack = (chip.textContent + ' ' + (chip.title || '')).toLowerCase();
+                const match = !query || haystack.includes(query);
                 chip.classList.toggle('hidden-by-search', !match);
                 if (match) visibleCount++;
             });
@@ -184,19 +335,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Using raw: true gets us Date objects instead of randomly formatted strings
                 rawSchedule = XLSX.utils.sheet_to_json(scheduleSheet, { defval: "", raw: true });
 
-                // Process Sheet 2 (Teachers)
+                // Start van de interne lijst; Sheet 2 (indien aanwezig) overschrijft/aanvult
+                teachersMap = { ...BUILT_IN_TEACHERS_MAP };
+
                 if (workbook.SheetNames.length > 1) {
                     const secondSheetName = workbook.SheetNames[1];
                     const teacherSheet = workbook.Sheets[secondSheetName];
                     const teacherData = XLSX.utils.sheet_to_json(teacherSheet, { header: 1, defval: "" });
                     // Assuming row 0 is header. Kolom 1 = Naam, Kolom 2 = Afkorting
-                    teachersMap = {};
                     for (let i = 1; i < teacherData.length; i++) {
                         const row = teacherData[i];
                         if (row && row.length >= 2) {
                             const naam = row[0].toString().trim();
                             const afkort = row[1].toString().trim();
-                            if (afkort) {
+                            if (afkort && naam) {
                                 teachersMap[afkort] = naam;
                             }
                         }
@@ -284,8 +436,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const chip = document.createElement('div');
             chip.className = 'chip';
             const fullNaam = teachersMap[docentAfkort];
-            // If full name is available and different from abbreviation, show it
-            chip.textContent = fullNaam && fullNaam !== docentAfkort ? `${fullNaam} (${docentAfkort})` : docentAfkort;
+            // Toon de afkorting; volledige naam (indien gekend) verschijnt als tooltip op hover
+            chip.textContent = docentAfkort;
+            if (fullNaam && fullNaam !== docentAfkort) {
+                chip.title = fullNaam;
+            }
             chip.addEventListener('click', () => {
                 chip.classList.toggle('active');
                 if (selectedTeachers.has(docentAfkort)) {
