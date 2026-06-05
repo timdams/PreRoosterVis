@@ -574,28 +574,41 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Bepaal de vroegste datum over alle examens heen voor consistente weektelling
+        // Bepaal de vroegste én verste datum over alle ingeladen data heen
+        // voor consistente weektelling en het juiste aantal weken
         let globalEarliestDate = null;
+        let globalLatestDate = null;
         rawSchedule.forEach(row => {
             const d = parseDateObj(row['Datum']);
-            if (d && (!globalEarliestDate || d.getTime() < globalEarliestDate.getTime())) {
-                globalEarliestDate = d;
+            if (d) {
+                if (!globalEarliestDate || d.getTime() < globalEarliestDate.getTime()) {
+                    globalEarliestDate = d;
+                }
+                if (!globalLatestDate || d.getTime() > globalLatestDate.getTime()) {
+                    globalLatestDate = d;
+                }
             }
         });
 
         const earliestDate = globalEarliestDate || merged[0]._dateObj;
+        const latestDate = globalLatestDate || earliestDate;
         // Fallback: earliest Monday
         const startMonday = new Date(earliestDate);
         const dayOfWeek = startMonday.getDay();
         const diff = startMonday.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
         startMonday.setDate(diff);
 
-        // Group into Week 1, Week 2, Week 3
-        const weeks = [
-            generateWeekGrid(startMonday, 0),
-            generateWeekGrid(startMonday, 1),
-            generateWeekGrid(startMonday, 2),
-        ];
+        // Aantal weken bepalen op basis van de verste datum in alle data
+        const startMondayUTC = Date.UTC(startMonday.getFullYear(), startMonday.getMonth(), startMonday.getDate());
+        const latestUTC = Date.UTC(latestDate.getFullYear(), latestDate.getMonth(), latestDate.getDate());
+        const totalDays = Math.floor((latestUTC - startMondayUTC) / (1000 * 60 * 60 * 24));
+        const numWeeks = Math.max(1, Math.floor(totalDays / 7) + 1);
+
+        // Genereer alle benodigde weken
+        const weeks = [];
+        for (let w = 0; w < numWeeks; w++) {
+            weeks.push(generateWeekGrid(startMonday, w));
+        }
 
         // Assign exams to correct day & week
         merged.forEach(exam => {
@@ -610,8 +623,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const weekIdx = Math.floor(diffDays / 7);
             const dayIdx = diffDays % 7;
 
-            // Limit to Mon-Fri of the 3 weeks
-            if (weekIdx >= 0 && weekIdx <= 2 && dayIdx >= 0 && dayIdx <= 4) {
+            // Limit to Mon-Fri binnen de beschikbare weken
+            if (weekIdx >= 0 && weekIdx < numWeeks && dayIdx >= 0 && dayIdx <= 4) {
                 weeks[weekIdx].days[dayIdx].exams.push(exam);
             }
         });
