@@ -3,13 +3,17 @@
   "tech": "JavaScript",
   "techDetail": "JavaScript / xlsx",
   "branch": "main",
-  "lastCommit": "2026-04-24",
-  "lastCommitMsg": "olod zoek",
-  "lastCommitHash": "b692d2d",
+  "lastCommit": "2026-04-28",
+  "lastCommitMsg": "naam zoeken",
+  "lastCommitHash": "86dae18",
   "hasGit": true,
   "remote": "https://github.com/timdams/PreRoosterVis",
   "tag": null,
   "recentCommits": [
+    {
+      "hash": "86dae18",
+      "msg": "naam zoeken"
+    },
     {
       "hash": "b692d2d",
       "msg": "olod zoek"
@@ -25,10 +29,6 @@
     {
       "hash": "8432737",
       "msg": "filter links"
-    },
-    {
-      "hash": "d9fc9cd",
-      "msg": "college filter"
     }
   ],
   "workspace": "untisbrowser.code-workspace",

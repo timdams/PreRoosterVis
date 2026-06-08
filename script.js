@@ -574,28 +574,36 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Bepaal de vroegste datum over alle examens heen voor consistente weektelling
+        // Bepaal de vroegste én laatste datum over alle examens heen voor consistente weektelling
         let globalEarliestDate = null;
+        let globalLatestDate = null;
         rawSchedule.forEach(row => {
             const d = parseDateObj(row['Datum']);
-            if (d && (!globalEarliestDate || d.getTime() < globalEarliestDate.getTime())) {
-                globalEarliestDate = d;
+            if (d) {
+                if (!globalEarliestDate || d.getTime() < globalEarliestDate.getTime()) globalEarliestDate = d;
+                if (!globalLatestDate || d.getTime() > globalLatestDate.getTime()) globalLatestDate = d;
             }
         });
 
         const earliestDate = globalEarliestDate || merged[0]._dateObj;
+        const latestDate = globalLatestDate || merged[merged.length - 1]._dateObj;
         // Fallback: earliest Monday
         const startMonday = new Date(earliestDate);
         const dayOfWeek = startMonday.getDay();
         const diff = startMonday.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
         startMonday.setDate(diff);
 
-        // Group into Week 1, Week 2, Week 3
-        const weeks = [
-            generateWeekGrid(startMonday, 0),
-            generateWeekGrid(startMonday, 1),
-            generateWeekGrid(startMonday, 2),
-        ];
+        // Bepaal hoeveel weken de data overspant, zodat ook lege tussenweken getoond worden
+        const firstMondayUTC = Date.UTC(startMonday.getFullYear(), startMonday.getMonth(), startMonday.getDate());
+        const latestUTC = Date.UTC(latestDate.getFullYear(), latestDate.getMonth(), latestDate.getDate());
+        const spanDays = Math.floor((latestUTC - firstMondayUTC) / (1000 * 60 * 60 * 24));
+        const numWeeks = Math.max(1, Math.floor(spanDays / 7) + 1);
+
+        // Genereer een raster per week
+        const weeks = [];
+        for (let w = 0; w < numWeeks; w++) {
+            weeks.push(generateWeekGrid(startMonday, w));
+        }
 
         // Assign exams to correct day & week
         merged.forEach(exam => {
@@ -610,18 +618,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const weekIdx = Math.floor(diffDays / 7);
             const dayIdx = diffDays % 7;
 
-            // Limit to Mon-Fri of the 3 weeks
-            if (weekIdx >= 0 && weekIdx <= 2 && dayIdx >= 0 && dayIdx <= 4) {
+            // Limit to Mon-Fri binnen het bereik van de gegenereerde weken
+            if (weekIdx >= 0 && weekIdx < numWeeks && dayIdx >= 0 && dayIdx <= 4) {
                 weeks[weekIdx].days[dayIdx].exams.push(exam);
             }
         });
 
         // Render HTML
+        // Lege weken (zonder lesmomenten) worden wel getoond, maar tellen niet mee
+        // in de weeknummering: ze krijgen het label "Week leeg".
         let html = '';
-        weeks.forEach((week, i) => {
+        let weekNumber = 0;
+        weeks.forEach((week) => {
+            const hasExams = week.days.some(day => day.exams.length > 0);
+            let weekLabel;
+            if (hasExams) {
+                weekNumber++;
+                weekLabel = `Week ${weekNumber}`;
+            } else {
+                weekLabel = 'Week leeg';
+            }
             html += `
                 <div class="week-view glass-panel">
-                    <div class="week-title">Week ${i + 1} &nbsp;<span style="font-size: 1rem; font-weight: 400;">(${formatDateShort(week.startDate)} - ${formatDateShort(addDays(week.startDate, 4))})</span></div>
+                    <div class="week-title">${weekLabel} &nbsp;<span style="font-size: 1rem; font-weight: 400;">(${formatDateShort(week.startDate)} - ${formatDateShort(addDays(week.startDate, 4))})</span></div>
                     <div class="days-grid">
             `;
 
