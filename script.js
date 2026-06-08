@@ -574,7 +574,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Bepaal de vroegste én laatste datum over alle examens heen voor consistente weektelling
+        // Bepaal de vroegste én laatste datum over alle ingeladen data heen
+        // voor consistente weektelling en het juiste aantal weken
         let globalEarliestDate = null;
         let globalLatestDate = null;
         rawSchedule.forEach(row => {
@@ -599,7 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const spanDays = Math.floor((latestUTC - firstMondayUTC) / (1000 * 60 * 60 * 24));
         const numWeeks = Math.max(1, Math.floor(spanDays / 7) + 1);
 
-        // Genereer een raster per week
+        // Genereer alle benodigde weken
         const weeks = [];
         for (let w = 0; w < numWeeks; w++) {
             weeks.push(generateWeekGrid(startMonday, w));
